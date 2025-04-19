@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eltiqni-cache-v2';  // تحديث النسخة مع كل تغيير
+const CACHE_NAME = 'eltiqni-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -9,6 +9,7 @@ const urlsToCache = [
   '/icon-512.png',
 ];
 
+// إضافة المقالات بشكل ديناميكي عند تحميلها
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -33,11 +34,25 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// التعامل مع طلبات الملفات بشكل ديناميكي
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        return response || fetch(event.request);
+  // لا تضع كل طلبات المقالات في الكاش بشكل ثابت لأن URLs قد تتغير
+  if (event.request.url.includes('/article/')) {  // assuming articles have /article/ in the URL
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request).then((fetchResponse) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, fetchResponse.clone());  // إضافة المقال إلى الكاش
+            return fetchResponse;
+          });
+        });
       })
-  );
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request);  // العودة إلى الكاش إذا كان الملف موجودًا
+      })
+    );
+  }
 });
