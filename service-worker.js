@@ -1,6 +1,4 @@
-// service-worker.js - آخر تحديث: 2025-04-19
-
-const CACHE_NAME = 'eltiqni-cache-v1';
+const CACHE_NAME = 'eltiqni-cache-v2';  // تحديث النسخة مع كل تغيير
 const urlsToCache = [
   '/',
   '/index.html',
@@ -8,23 +6,26 @@ const urlsToCache = [
   '/script.js',
   '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
 ];
 
-self.addEventListener('install', event => {
+self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then((cache) => {
+        return cache.addAll(urlsToCache);
+      })
   );
 });
 
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
           }
         })
       );
@@ -32,10 +33,10 @@ self.addEventListener('activate', event => {
   );
 });
 
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
+      .then((response) => {
         return response || fetch(event.request);
       })
   );
