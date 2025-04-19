@@ -26,7 +26,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
+            return caches.delete(cacheName);  // حذف النسخ القديمة من الكاش
           }
         })
       );
@@ -36,8 +36,7 @@ self.addEventListener('activate', (event) => {
 
 // التعامل مع طلبات الملفات بشكل ديناميكي
 self.addEventListener('fetch', (event) => {
-  // لا تضع كل طلبات المقالات في الكاش بشكل ثابت لأن URLs قد تتغير
-  if (event.request.url.includes('/article/')) {  // assuming articles have /article/ in the URL
+  if (event.request.url.includes('/article/')) { // assuming articles have /article/ in the URL
     event.respondWith(
       caches.match(event.request).then((response) => {
         return response || fetch(event.request).then((fetchResponse) => {
