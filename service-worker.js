@@ -1,57 +1,52 @@
+
 const CACHE_NAME = 'eltiqni-cache-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/script.js',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  './',
+  './index.html',
+  './styles.css',
+  './script.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
 ];
 
-// إضافة المقالات بشكل ديناميكي عند تحميلها
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
 });
 
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames.map((cacheName) => {
           if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);  // حذف النسخ القديمة من الكاش
+            return caches.delete(cacheName);
           }
         })
-      );
-    })
+      )
+    )
   );
 });
 
-// التعامل مع طلبات الملفات بشكل ديناميكي
 self.addEventListener('fetch', (event) => {
-  if (event.request.url.includes('/article/')) { // assuming articles have /article/ in the URL
+  if (event.request.url.includes('/article/')) {
     event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request).then((fetchResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, fetchResponse.clone());  // إضافة المقال إلى الكاش
+      caches.match(event.request).then((response) =>
+        response ||
+        fetch(event.request).then((fetchResponse) =>
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, fetchResponse.clone());
             return fetchResponse;
-          });
-        });
-      })
+          })
+        )
+      )
     );
   } else {
     event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request);  // العودة إلى الكاش إذا كان الملف موجودًا
-      })
+      caches.match(event.request).then((response) => response || fetch(event.request))
     );
   }
 });
